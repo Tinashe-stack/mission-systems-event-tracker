@@ -1,6 +1,6 @@
 # Mission Systems Event Tracker
 
-A Python-based event tracking application that simulates a mission-style monitoring workflow. The system ingests structured event data from CSV, validates each event, assigns a priority score, stores valid events in SQLite, and supports filtering, status updates, and summary reporting.
+A Python-based event tracking application that simulates a mission-style monitoring workflow. The system ingests structured event data from CSV, validates each event, assigns a priority score, stores valid events in SQLite, and supports filtering, status updates, summary reporting, and CSV export.
 
 This project was built to practise modular Python development, requirements-driven design, validation logic, database persistence, command-line workflows, and automated testing.
 
@@ -14,6 +14,7 @@ This project was built to practise modular Python development, requirements-driv
 - Update event status to `NEW`, `ACK`, or `RESOLVED`.
 - Record the operator associated with a status change.
 - Display summary statistics for the current event set.
+- Export filtered event sets to CSV for reporting and analysis.
 - Run automated tests with `pytest`.
 
 ## Project structure
@@ -24,6 +25,8 @@ mission-systems-event-tracker/
 │   └── sample_events.csv
 ├── docs/
 │   └── requirements.md
+├── exports/
+│   └── *.csv
 ├── src/
 │   ├── main.py
 │   ├── models.py
@@ -32,6 +35,7 @@ mission-systems-event-tracker/
 │   └── validate.py
 ├── tests/
 │   ├── conftest.py
+│   ├── test_export.py
 │   ├── test_rules.py
 │   ├── test_storage.py
 │   └── test_validate.py
@@ -42,7 +46,7 @@ mission-systems-event-tracker/
 
 ## How it works
 
-The application reads synthetic mission-system events from `data/sample_events.csv`. Each row is validated, scored, and inserted into a SQLite database if valid. Once loaded, the event set can be queried with filters, updated by status, and summarised through the command line.
+The application reads synthetic mission-system events from `data/sample_events.csv`. Each row is validated, scored, and inserted into a SQLite database if valid. Once loaded, the event set can be queried with filters, updated by status, summarised through the command line, and exported for downstream reporting.
 
 ## Setup
 
@@ -81,6 +85,13 @@ Show a summary report:
 
 ```bash
 python src/main.py summary
+```
+
+Export filtered events to CSV:
+
+```bash
+python src/main.py export --status ACK --output exports/ack_events.csv
+python src/main.py export --subsystem COMMS --severity CRITICAL --output exports/comms_critical.csv
 ```
 
 ## Example summary output
@@ -126,6 +137,7 @@ The project currently includes tests for:
 - Status updates.
 - Excluding resolved events from top open events.
 - Summary count queries.
+- CSV export behavior and edge cases.
 
 ## Why this project
 
@@ -136,6 +148,7 @@ This project is designed to demonstrate software engineering skills that go beyo
 - Business-rule implementation.
 - Database integration.
 - Command-line interface design.
+- File export workflows.
 - Automated testing.
 - Clear, reproducible setup.
 
@@ -143,7 +156,7 @@ This project is designed to demonstrate software engineering skills that go beyo
 
 Planned improvements include:
 
-- Export filtered results to CSV.
-- Add more advanced audit history for status changes.
+- Add richer audit history for status changes.
 - Add a lightweight dashboard for event monitoring.
-- Add more test coverage for CLI output and edge cases.
+- Add more CLI output tests and edge-case coverage.
+- Add timestamped export filenames or export metadata.

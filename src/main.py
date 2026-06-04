@@ -20,6 +20,8 @@ from validate import validate_event
 
 DATA_FILE = Path("data/sample_events.csv")
 
+EXPORTS_DIR = Path("exports")
+
 
 def load_events_from_csv(file_path: Path) -> tuple[int, int]:
     valid_count = 0
@@ -156,6 +158,77 @@ def handle_summary(args) -> None:
 
     conn.close()
 
+def export_rows_to_csv(rows, output_path: Path) -> int:
+    if not rows:
+        return 0
+
+    try:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        fieldnames = list(rows[0].keys())
+
+        with output_path.open(mode="w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows([dict(row) for row in rows])
+
+        return len(rows)
+
+    except OSError as exc:
+        raise RuntimeError(f"Failed to export CSV to {output_path}: {exc}") from exc
+
+
+def handle_export(args) -> None:
+    conn = get_connection()
+    initialize_database(conn)
+
+    rows = fetch_filtered_events(
+        conn,
+        subsystem=args.subsystem,
+        severity=args.severity,
+        status=args.status,
+        limit=args.limit,
+    )
+
+    output_path = Path(args.output) if args.output else EXPORTS_DIR / "filtered_events.csv"
+    exported_count = export_rows_to_csv(rows, output_path)
+
+    if exported_count == 0:
+        print("No events found for export.")
+    else:
+        print(f"Exported {exported_count} events to {output_path}")
+
+    conn.close()
+    conn = get_connection()
+    initialize_database(conn)
+
+    rows = fetch_filtered_events(
+        conn,
+        subsystem=args.subsystem,
+        severity=args.severity,
+        status=args.status,
+        limit=args.limit,
+    )
+
+    if not rows:
+        print("No events found for export.")
+        conn.close()
+        return
+
+    EXPORTS_DIR.mkdir(exist_ok=True)
+
+    output_path = Path(args.output) if args.output else EXPORTS_DIR / "filtered_events.csv"
+
+    fieldnames = list(rows[0].keys())
+
+    with output_path.open(mode="w", newline="", encoding="utf-8") as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows([dict(row) for row in rows])
+
+    print(f"Exported {len(rows)} events to {output_path}")
+    conn.close()
+
 
 def build_parser():
     parser = argparse.ArgumentParser(description="Mission Systems Event Tracker")
@@ -186,8 +259,17 @@ def build_parser():
     )
     update_parser.add_argument("--operator", help="Operator name or ID")
     update_parser.set_defaults(func=handle_update_status)
+    
     summary_parser = subparsers.add_parser("summary", help="Show event summary report")
     summary_parser.set_defaults(func=handle_summary)
+    
+    export_parser = subparsers.add_parser("export", help="Export filtered events to CSV")
+    export_parser.add_argument("--subsystem", help="Filter by subsystem")
+    export_parser.add_argument("--severity", help="Filter by severity")
+    export_parser.add_argument("--status", help="Filter by status")
+    export_parser.add_argument("--limit", type=int, default=100, help="Max rows to export")
+    export_parser.add_argument("--output", help="Output CSV file path")
+    export_parser.set_defaults(func=handle_export)
 
     return parser
 
