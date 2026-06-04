@@ -4,6 +4,10 @@ Mission Systems Event Tracker is a Python-based software engineering project for
 
 The project is designed to demonstrate core backend engineering skills through a realistic operational monitoring workflow using Python, SQLite, CSV ingestion, a command-line interface, and a Streamlit dashboard.
 
+## Screenshot
+
+![Mission Systems Event Tracker dashboard](screenshots/dashboard.png)
+
 ## Features
 
 - Load structured event data from CSV.
