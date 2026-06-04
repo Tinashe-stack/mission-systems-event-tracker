@@ -236,6 +236,7 @@ def render_status_update_panel(df: pd.DataFrame) -> None:
             else:
                 conn = get_connection()
                 initialize_database(conn)
+
                 updated_rows = update_event_status(
                     conn,
                     event_id=selected_event_id,
