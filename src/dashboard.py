@@ -76,10 +76,6 @@ def apply_filters(
     return filtered
 
 
-def metric_value(df: pd.DataFrame, label: str) -> int:
-    return 0 if df.empty else int((df["status"] == label).sum())
-
-
 def render_metrics(df: pd.DataFrame) -> None:
     total_events = len(df)
     open_events = 0 if df.empty else int((df["status"] != "RESOLVED").sum())
@@ -319,5 +315,6 @@ def main() -> None:
     st.divider()
     render_history(history_df, selected_event_ids)
     
+       
 if __name__ == "__main__":
     main()
