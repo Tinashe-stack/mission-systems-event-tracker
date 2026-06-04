@@ -11,6 +11,9 @@ This project was built to practise requirements-driven software development, mod
 - Calculate a `priority_score` based on severity and event type.
 - Store valid events in a SQLite database.
 - Query and display the highest-priority unresolved events.
+- Filter events by subsystem, severity, and status.
+- Update event status to NEW, ACK, or RESOLVED.
+- Record operator name for status changes.
 - Run automated tests with `pytest`.
 
 ## Project structure
@@ -53,21 +56,25 @@ pip install -r requirements.txt
 
 ## Run the application
 
-From the project root:
+Load events from the sample CSV:
 
 ```bash
-python src/main.py
+python src/main.py load
 ```
 
-Example output:
+List events with optional filters:
 
-```text
-Load complete.
-Valid events loaded: 24
-Invalid events rejected: 0
+```bash
+python src/main.py list --status NEW
+python src/main.py list --subsystem COMMS --severity CRITICAL
+python src/main.py list --status ACK --limit 5
+```
 
-Top open events:
-EVT-0023 | 2026-06-04T08:22:50Z | POWER | FAILOVER_TRIGGERED | CRITICAL | priority=100 | status=NEW
+Update an event status:
+
+```bash
+python src/main.py update-status EVT-0005 --status ACK --operator tinashe
+python src/main.py update-status EVT-0005 --status RESOLVED --operator tinashe
 ```
 
 ## Run tests
