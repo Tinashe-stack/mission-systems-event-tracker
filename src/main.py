@@ -3,7 +3,12 @@ import csv
 from pathlib import Path
 
 from rules import calculate_priority_score
+
 from storage import (
+    count_events_by_status,
+    count_events_by_severity,
+    count_events_by_subsystem,
+    count_total_events,
     fetch_filtered_events,
     fetch_top_open_events,
     get_connection,
@@ -119,6 +124,37 @@ def handle_update_status(args) -> None:
         print(f"Updated {args.event_id} to status={args.status.upper()}")
 
     conn.close()
+    
+def handle_summary(args) -> None:
+    conn = get_connection()
+    initialize_database(conn)
+
+    total_events = count_total_events(conn)
+    by_status = count_events_by_status(conn)
+    by_severity = count_events_by_severity(conn)
+    by_subsystem = count_events_by_subsystem(conn)
+    top_open = fetch_top_open_events(conn, limit=3)
+
+    print("\nEvent summary:")
+    print("-" * 100)
+    print(f"Total events: {total_events}")
+
+    print("\nBy status:")
+    for row in by_status:
+        print(f"  {row['status']}: {row['count']}")
+
+    print("\nBy severity:")
+    for row in by_severity:
+        print(f"  {row['severity']}: {row['count']}")
+
+    print("\nBy subsystem:")
+    for row in by_subsystem:
+        print(f"  {row['subsystem']}: {row['count']}")
+
+    print("\nTop open events:")
+    print_events(top_open)
+
+    conn.close()
 
 
 def build_parser():
@@ -150,6 +186,8 @@ def build_parser():
     )
     update_parser.add_argument("--operator", help="Operator name or ID")
     update_parser.set_defaults(func=handle_update_status)
+    summary_parser = subparsers.add_parser("summary", help="Show event summary report")
+    summary_parser.set_defaults(func=handle_summary)
 
     return parser
 

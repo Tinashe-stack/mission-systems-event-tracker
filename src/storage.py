@@ -228,3 +228,34 @@ def test_resolved_events_do_not_appear_in_top_open_events():
     assert "EVT-TEST-106" not in event_ids
 
     conn.close()
+
+def count_total_events(conn: sqlite3.Connection) -> int:
+    row = conn.execute("SELECT COUNT(*) AS count FROM events").fetchone()
+    return row["count"] if row else 0
+
+def count_events_by_status(conn: sqlite3.Connection):
+    query = """
+    SELECT status, COUNT(*) AS count
+    FROM events
+    GROUP BY status
+    ORDER BY count DESC, status ASC;
+    """
+    return conn.execute(query).fetchall()
+
+def count_events_by_severity(conn: sqlite3.Connection):
+    query = """
+    SELECT severity, COUNT(*) AS count
+    FROM events
+    GROUP BY severity
+    ORDER BY count DESC, severity ASC;
+    """
+    return conn.execute(query).fetchall()
+
+def count_events_by_subsystem(conn: sqlite3.Connection):
+    query = """
+    SELECT subsystem, COUNT(*) AS count
+    FROM events
+    GROUP BY subsystem
+    ORDER BY count DESC, subsystem ASC;
+    """
+    return conn.execute(query).fetchall()

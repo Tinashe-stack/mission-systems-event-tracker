@@ -1,5 +1,38 @@
-from storage import initialize_database, insert_event, fetch_top_open_events
+from storage import (
+    initialize_database,
+    insert_event,
+    fetch_top_open_events,
+    fetch_filtered_events,
+    update_event_status,
+    count_total_events,
+    count_events_by_status,
+    count_events_by_severity,
+    count_events_by_subsystem,
+)
 import sqlite3
+
+def make_event(
+    event_id,
+    subsystem="COMMS",
+    event_type="LINK_DOWN",
+    severity="CRITICAL",
+    priority_score=100,
+    status="NEW",
+):
+    return {
+        "event_id": event_id,
+        "timestamp": "2026-06-04T08:03:00Z",
+        "subsystem": subsystem,
+        "event_type": event_type,
+        "severity": severity,
+        "priority_score": priority_score,
+        "status": status,
+        "message": f"Test message for {event_id}",
+        "source_host": "test-host",
+        "source_ip": "10.0.0.1",
+        "operator": None,
+        "status_updated_at": None,
+    }
 
 
 def test_inserted_event_can_be_retrieved_from_database():
@@ -28,5 +61,82 @@ def test_inserted_event_can_be_retrieved_from_database():
     assert rows[0]["event_id"] == "EVT-TEST-004"
     assert rows[0]["priority_score"] == 66
     assert rows[0]["status"] == "NEW"
+
+    conn.close()
+    
+def test_count_total_events_returns_correct_number():
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    initialize_database(conn)
+
+    insert_event(conn, make_event("EVT-TEST-200"))
+    insert_event(conn, make_event("EVT-TEST-201"))
+    insert_event(conn, make_event("EVT-TEST-202"))
+
+    total = count_total_events(conn)
+
+    assert total == 3
+
+    conn.close()
+
+
+def test_count_events_by_status_returns_expected_counts():
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    initialize_database(conn)
+
+    insert_event(conn, make_event("EVT-TEST-203", status="NEW"))
+    insert_event(conn, make_event("EVT-TEST-204", status="NEW"))
+    insert_event(conn, make_event("EVT-TEST-205", status="ACK"))
+    insert_event(conn, make_event("EVT-TEST-206", status="RESOLVED"))
+
+    rows = count_events_by_status(conn)
+    counts = {row["status"]: row["count"] for row in rows}
+
+    assert counts["NEW"] == 2
+    assert counts["ACK"] == 1
+    assert counts["RESOLVED"] == 1
+
+    conn.close()
+
+
+def test_count_events_by_severity_returns_expected_counts():
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    initialize_database(conn)
+
+    insert_event(conn, make_event("EVT-TEST-207", severity="INFO", priority_score=10))
+    insert_event(conn, make_event("EVT-TEST-208", severity="WARNING", priority_score=30))
+    insert_event(conn, make_event("EVT-TEST-209", severity="WARNING", priority_score=30))
+    insert_event(conn, make_event("EVT-TEST-210", severity="CRITICAL", priority_score=100))
+
+    rows = count_events_by_severity(conn)
+    counts = {row["severity"]: row["count"] for row in rows}
+
+    assert counts["INFO"] == 1
+    assert counts["WARNING"] == 2
+    assert counts["CRITICAL"] == 1
+
+    conn.close()
+
+
+def test_count_events_by_subsystem_returns_expected_counts():
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    initialize_database(conn)
+
+    insert_event(conn, make_event("EVT-TEST-211", subsystem="COMMS"))
+    insert_event(conn, make_event("EVT-TEST-212", subsystem="NAV"))
+    insert_event(conn, make_event("EVT-TEST-213", subsystem="POWER"))
+    insert_event(conn, make_event("EVT-TEST-214", subsystem="SENSOR"))
+    insert_event(conn, make_event("EVT-TEST-215", subsystem="SENSOR"))
+
+    rows = count_events_by_subsystem(conn)
+    counts = {row["subsystem"]: row["count"] for row in rows}
+
+    assert counts["COMMS"] == 1
+    assert counts["NAV"] == 1
+    assert counts["POWER"] == 1
+    assert counts["SENSOR"] == 2
 
     conn.close()
