@@ -77,16 +77,15 @@ def apply_filters(
 
 
 def metric_value(df: pd.DataFrame, label: str) -> int:
-    return int((df["status"] == label).sum()) if not df.empty else 0
+    return 0 if df.empty else int((df["status"] == label).sum())
 
 
 def render_metrics(df: pd.DataFrame) -> None:
     total_events = len(df)
-    open_events = int((df["status"] != "RESOLVED").sum()) if not df.empty else 0
-    resolved_events = int((df["status"] == "RESOLVED").sum()) if not df.empty else 0
+    open_events = 0 if df.empty else int((df["status"] != "RESOLVED").sum())
+    resolved_events = 0 if df.empty else int((df["status"] == "RESOLVED").sum())
     high_priority_open = (
-        int(((df["priority_score"] >= 80) & (df["status"] != "RESOLVED")).sum())
-        if not df.empty else 0
+        0 if df.empty else int(((df["priority_score"] >= 80) & (df["status"] != "RESOLVED")).sum())
     )
 
     col1, col2, col3, col4 = st.columns(4)
@@ -296,7 +295,7 @@ def main() -> None:
         search_text,
     )
 
-    selected_event_ids = filtered_events["event_id"].tolist() if not filtered_events.empty else []
+    selected_event_ids = [] if filtered_events.empty else filtered_events["event_id"].tolist()
 
     render_metrics(filtered_events)
     st.divider()
