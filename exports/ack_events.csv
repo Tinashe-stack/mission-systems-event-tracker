@@ -1,0 +1,2 @@
+event_id,timestamp,subsystem,event_type,severity,priority_score,status,message,source_host,source_ip,operator,status_updated_at,ingested_at
+EVT-0005,2026-06-04T08:04:55Z,COMMS,LINK_DOWN,CRITICAL,100,ACK,Primary comms link lost,comms-node-01,10.0.2.14,tinashe,2026-06-04 12:42:22,2026-06-04 12:38:37

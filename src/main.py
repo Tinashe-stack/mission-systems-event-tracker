@@ -10,6 +10,7 @@ from storage import (
     count_events_by_subsystem,
     count_total_events,
     fetch_filtered_events,
+    fetch_status_history,
     fetch_top_open_events,
     get_connection,
     initialize_database,
@@ -228,6 +229,27 @@ def handle_export(args) -> None:
 
     print(f"Exported {len(rows)} events to {output_path}")
     conn.close()
+    
+def handle_history(args) -> None:
+    conn = get_connection()
+    initialize_database(conn)
+
+    rows = fetch_status_history(conn, args.event_id)
+
+    if not rows:
+        print(f"No status history found for event {args.event_id}")
+        conn.close()
+        return
+
+    print(f"Status history for {args.event_id}:")
+    print("-" * 100)
+    for row in rows:
+        print(
+            f"{row['changed_at']} | {row['event_id']} | "
+            f"{row['old_status']} -> {row['new_status']} | operator={row['operator']}"
+        )
+
+    conn.close()
 
 
 def build_parser():
@@ -270,6 +292,10 @@ def build_parser():
     export_parser.add_argument("--limit", type=int, default=100, help="Max rows to export")
     export_parser.add_argument("--output", help="Output CSV file path")
     export_parser.set_defaults(func=handle_export)
+    
+    history_parser = subparsers.add_parser("history", help="Show status history for an event")
+    history_parser.add_argument("event_id", help="Event ID to inspect")
+    history_parser.set_defaults(func=handle_history)
 
     return parser
 

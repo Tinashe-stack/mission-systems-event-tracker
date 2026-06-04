@@ -1,15 +1,17 @@
+import sqlite3
+
 from storage import (
+    count_events_by_severity,
+    count_events_by_status,
+    count_events_by_subsystem,
+    count_total_events,
+    fetch_filtered_events,
+    fetch_status_history,
+    fetch_top_open_events,
     initialize_database,
     insert_event,
-    fetch_top_open_events,
-    fetch_filtered_events,
     update_event_status,
-    count_total_events,
-    count_events_by_status,
-    count_events_by_severity,
-    count_events_by_subsystem,
 )
-import sqlite3
 
 def make_event(
     event_id,
@@ -138,5 +140,57 @@ def test_count_events_by_subsystem_returns_expected_counts():
     assert counts["NAV"] == 1
     assert counts["POWER"] == 1
     assert counts["SENSOR"] == 2
+
+    conn.close()
+
+def test_update_event_status_logs_history_entry():
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    initialize_database(conn)
+
+    insert_event(conn, make_event("EVT-TEST-500", status="NEW"))
+
+    updated = update_event_status(conn, "EVT-TEST-500", "ACK", "tinashe")
+    history_rows = fetch_status_history(conn, "EVT-TEST-500")
+
+    assert updated is True
+    assert len(history_rows) == 1
+    assert history_rows[0]["event_id"] == "EVT-TEST-500"
+    assert history_rows[0]["old_status"] == "NEW"
+    assert history_rows[0]["new_status"] == "ACK"
+    assert history_rows[0]["operator"] == "tinashe"
+
+    conn.close()
+
+
+def test_fetch_status_history_returns_rows_in_order():
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    initialize_database(conn)
+
+    insert_event(conn, make_event("EVT-TEST-501", status="NEW"))
+
+    update_event_status(conn, "EVT-TEST-501", "ACK", "tinashe")
+    update_event_status(conn, "EVT-TEST-501", "RESOLVED", "tinashe")
+
+    history_rows = fetch_status_history(conn, "EVT-TEST-501")
+
+    assert len(history_rows) == 2
+    assert history_rows[0]["old_status"] == "NEW"
+    assert history_rows[0]["new_status"] == "ACK"
+    assert history_rows[1]["old_status"] == "ACK"
+    assert history_rows[1]["new_status"] == "RESOLVED"
+
+    conn.close()
+
+
+def test_fetch_status_history_returns_empty_for_unknown_event():
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    initialize_database(conn)
+
+    history_rows = fetch_status_history(conn, "EVT-DOES-NOT-EXIST")
+
+    assert history_rows == []
 
     conn.close()

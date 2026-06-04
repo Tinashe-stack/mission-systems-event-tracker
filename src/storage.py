@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime, UTC
 from pathlib import Path
 
 DB_PATH = Path(__file__).resolve().parent.parent / "mission_events.db"
@@ -44,7 +45,35 @@ def get_connection(db_path: Path = DB_PATH) -> sqlite3.Connection:
     return conn
 
 def initialize_database(conn: sqlite3.Connection) -> None:
-    conn.execute(CREATE_EVENTS_TABLE_SQL)
+    conn.execute("""
+    CREATE TABLE IF NOT EXISTS events (
+        event_id TEXT PRIMARY KEY,
+        timestamp TEXT NOT NULL,
+        subsystem TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        severity TEXT NOT NULL,
+        priority_score INTEGER NOT NULL,
+        status TEXT NOT NULL,
+        message TEXT NOT NULL,
+        source_host TEXT,
+        source_ip TEXT,
+        operator TEXT,
+        status_updated_at TEXT
+    );
+    """)
+
+    conn.execute("""
+    CREATE TABLE IF NOT EXISTS event_status_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_id TEXT NOT NULL,
+        old_status TEXT,
+        new_status TEXT NOT NULL,
+        operator TEXT NOT NULL,
+        changed_at TEXT NOT NULL,
+        FOREIGN KEY (event_id) REFERENCES events(event_id)
+    );
+    """)
+
     conn.commit()
 
 def insert_event(conn: sqlite3.Connection, event: dict) -> None:
@@ -112,27 +141,34 @@ def update_event_status(
     conn: sqlite3.Connection,
     event_id: str,
     new_status: str,
-    operator: str | None = None,
-) -> int:
-    query = """
-    UPDATE events
-    SET status = ?,
-        operator = ?,
-        status_updated_at = CURRENT_TIMESTAMP
-    WHERE event_id = ?;
-    """
-    cursor = conn.execute(query, (new_status.upper(), operator, event_id))
-    conn.commit()
-    return cursor.rowcount
+    operator: str,
+) -> bool:
+    current_row = conn.execute(
+        "SELECT status FROM events WHERE event_id = ?",
+        (event_id,),
+    ).fetchone()
 
-from storage import (
-    initialize_database,
-    insert_event,
-    fetch_top_open_events,
-    fetch_filtered_events,
-    update_event_status,
-)
-import sqlite3
+    if not current_row:
+        return False
+
+    old_status = current_row["status"]
+    status_updated_at = datetime.now(UTC).isoformat()
+
+    cursor = conn.execute(
+        """
+        UPDATE events
+        SET status = ?, operator = ?, status_updated_at = ?
+        WHERE event_id = ?
+        """,
+        (new_status, operator, status_updated_at, event_id),
+    )
+    conn.commit()
+
+    if cursor.rowcount == 0:
+        return False
+
+    log_status_change(conn, event_id, old_status, new_status, operator)
+    return True
 
 
 def make_event(
@@ -259,3 +295,30 @@ def count_events_by_subsystem(conn: sqlite3.Connection):
     ORDER BY count DESC, subsystem ASC;
     """
     return conn.execute(query).fetchall()
+
+def log_status_change(
+    conn: sqlite3.Connection,
+    event_id: str,
+    old_status: str | None,
+    new_status: str,
+    operator: str,
+) -> None:
+    changed_at = datetime.now(UTC).isoformat()
+
+    conn.execute(
+        """
+        INSERT INTO event_status_history (event_id, old_status, new_status, operator, changed_at)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (event_id, old_status, new_status, operator, changed_at),
+    )
+    conn.commit()
+
+def fetch_status_history(conn: sqlite3.Connection, event_id: str):
+    query = """
+    SELECT event_id, old_status, new_status, operator, changed_at
+    FROM event_status_history
+    WHERE event_id = ?
+    ORDER BY changed_at ASC;
+    """
+    return conn.execute(query, (event_id,)).fetchall()
