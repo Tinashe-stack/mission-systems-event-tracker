@@ -1,0 +1,25 @@
+event_id,timestamp,subsystem,event_type,severity,status,message,source_host,source_ip
+EVT-0001,2026-06-04T08:00:00Z,NAV,STATUS_UPDATE,INFO,NEW,Navigation subsystem online,nav-core-01,10.0.1.10
+EVT-0002,2026-06-04T08:01:12Z,COMMS,HEARTBEAT,INFO,NEW,Communications heartbeat received,comms-node-02,10.0.2.15
+EVT-0003,2026-06-04T08:02:41Z,POWER,VOLTAGE_DROP,WARNING,NEW,Power bus voltage dropped below threshold,power-unit-01,10.0.3.21
+EVT-0004,2026-06-04T08:03:09Z,SENSOR,SENSOR_FAULT,ERROR,NEW,Infrared sensor returned invalid readings,sensor-hub-03,10.0.4.33
+EVT-0005,2026-06-04T08:04:55Z,COMMS,LINK_DOWN,CRITICAL,NEW,Primary comms link lost,comms-node-01,10.0.2.14
+EVT-0006,2026-06-04T08:05:23Z,NAV,GPS_DRIFT,WARNING,NEW,GPS drift exceeds tolerance,nav-core-02,10.0.1.11
+EVT-0007,2026-06-04T08:06:10Z,POWER,TEMP_HIGH,ERROR,NEW,Power module temperature high,power-unit-02,10.0.3.22
+EVT-0008,2026-06-04T08:07:42Z,SENSOR,CALIBRATION_NEEDED,WARNING,NEW,Sensor calibration overdue,sensor-hub-01,10.0.4.31
+EVT-0009,2026-06-04T08:08:19Z,COMMS,STATUS_UPDATE,INFO,NEW,Backup comms channel available,comms-node-03,10.0.2.16
+EVT-0010,2026-06-04T08:09:58Z,NAV,WAYPOINT_SYNC_FAIL,ERROR,NEW,Waypoint synchronisation failed,nav-core-01,10.0.1.10
+EVT-0011,2026-06-04T08:10:30Z,POWER,BATTERY_LOW,WARNING,NEW,Battery reserve below 30 percent,power-unit-03,10.0.3.23
+EVT-0012,2026-06-04T08:11:11Z,SENSOR,HEARTBEAT,INFO,NEW,Sensor cluster heartbeat received,sensor-hub-02,10.0.4.32
+EVT-0013,2026-06-04T08:12:45Z,COMMS,PACKET_LOSS,WARNING,NEW,Elevated packet loss detected,comms-node-02,10.0.2.15
+EVT-0014,2026-06-04T08:13:07Z,NAV,LINK_DOWN,CRITICAL,NEW,Navigation uplink unavailable,nav-core-03,10.0.1.12
+EVT-0015,2026-06-04T08:14:26Z,POWER,POWER_RESTORE,INFO,NEW,Power bus returned to nominal range,power-unit-01,10.0.3.21
+EVT-0016,2026-06-04T08:15:54Z,SENSOR,SIGNAL_DEGRADED,WARNING,NEW,Sensor signal quality degraded,sensor-hub-03,10.0.4.33
+EVT-0017,2026-06-04T08:16:35Z,COMMS,AUTH_FAILURE,ERROR,NEW,Unauthorised access attempt detected,comms-node-01,10.0.2.14
+EVT-0018,2026-06-04T08:17:08Z,NAV,HEARTBEAT,INFO,NEW,Navigation heartbeat received,nav-core-02,10.0.1.11
+EVT-0019,2026-06-04T08:18:49Z,POWER,CURRENT_SPIKE,ERROR,NEW,Unexpected current spike detected,power-unit-02,10.0.3.22
+EVT-0020,2026-06-04T08:19:27Z,SENSOR,DATA_GAP,WARNING,NEW,Missing telemetry samples in sensor stream,sensor-hub-01,10.0.4.31
+EVT-0021,2026-06-04T08:20:41Z,COMMS,LINK_RESTORED,INFO,NEW,Primary comms link restored,comms-node-01,10.0.2.14
+EVT-0022,2026-06-04T08:21:14Z,NAV,POSITION_JUMP,ERROR,NEW,Sudden position jump detected,nav-core-01,10.0.1.10
+EVT-0023,2026-06-04T08:22:50Z,POWER,FAILOVER_TRIGGERED,CRITICAL,NEW,Automatic power failover triggered,power-unit-03,10.0.3.23
+EVT-0024,2026-06-04T08:23:33Z,SENSOR,SENSOR_FAULT,CRITICAL,NEW,Primary sensor array offline,sensor-hub-02,10.0.4.32

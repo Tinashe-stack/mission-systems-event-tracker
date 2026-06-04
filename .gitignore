@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+
+mission_events.db
+*.db
+*.sqlite
+*.sqlite3
