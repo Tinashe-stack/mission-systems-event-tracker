@@ -1,21 +1,29 @@
 # Mission Systems Event Tracker
 
-A Python-based event tracking application that simulates a mission-style monitoring workflow. The system ingests structured event data from CSV, validates each event, assigns a priority score, stores valid events in SQLite, and supports filtering, status updates, summary reporting, and CSV export.
+Mission Systems Event Tracker is a Python-based software engineering project for ingesting, validating, storing, querying, updating, summarising, and exporting mission-style event data.
 
-This project was built to practise modular Python development, requirements-driven design, validation logic, database persistence, command-line workflows, and automated testing.
+The project is designed to demonstrate core backend engineering skills through a realistic operational monitoring workflow using Python, SQLite, CSV ingestion, a command-line interface, and a Streamlit dashboard.
 
 ## Features
 
-- Load structured event data from a CSV file.
-- Validate required fields, timestamps, subsystem values, severity values, and IP addresses.
-- Calculate a `priority_score` based on severity and event type.
-- Store valid events in a SQLite database.
-- Filter events by subsystem, severity, and status.
-- Update event status to `NEW`, `ACK`, or `RESOLVED`.
-- Record the operator associated with a status change.
-- Display summary statistics for the current event set.
-- Export filtered event sets to CSV for reporting and analysis.
-- Run automated tests with `pytest`.
+- Load structured event data from CSV.
+- Validate incoming records before insertion.
+- Calculate and store event priority scores.
+- Persist data in a SQLite database.
+- Query and filter stored events from the command line.
+- Update event statuses and record operator actions.
+- Maintain event status history for auditability.
+- Summarise stored data through reporting views.
+- Export filtered event data to CSV.
+- Monitor events through a Streamlit dashboard with filters, charts, and status updates.
+
+## Tech stack
+
+- Python 3
+- SQLite
+- Pandas
+- Streamlit
+- Pytest
 
 ## Project structure
 
@@ -25,138 +33,168 @@ mission-systems-event-tracker/
 │   └── sample_events.csv
 ├── docs/
 │   └── requirements.md
-├── exports/
-│   └── *.csv
 ├── src/
+│   ├── dashboard.py
 │   ├── main.py
 │   ├── models.py
 │   ├── rules.py
 │   ├── storage.py
 │   └── validate.py
 ├── tests/
-│   ├── conftest.py
-│   ├── test_export.py
-│   ├── test_rules.py
-│   ├── test_storage.py
-│   └── test_validate.py
-├── .gitignore
-├── README.md
-└── requirements.txt
+├── requirements.txt
+└── README.md
 ```
 
-## How it works
+## Installation
 
-The application reads synthetic mission-system events from `data/sample_events.csv`. Each row is validated, scored, and inserted into a SQLite database if valid. Once loaded, the event set can be queried with filters, updated by status, summarised through the command line, and exported for downstream reporting.
-
-## Setup
-
-1. Clone the repository.
-2. Create and activate a virtual environment.
-3. Install dependencies:
+Clone the repository and move into the project folder:
 
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/Tinashe-stack/mission-systems-event-tracker.git
+cd mission-systems-event-tracker
 ```
 
-## Run the application
-
-Load events from the sample CSV:
+Create and activate a virtual environment:
 
 ```bash
-python src/main.py load
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
-List events with optional filters:
+Install dependencies:
 
 ```bash
-python src/main.py list --status NEW
-python src/main.py list --subsystem COMMS --severity CRITICAL
-python src/main.py list --status ACK --limit 5
+python3 -m pip install -r requirements.txt
+```
+
+## Run the CLI
+
+Load events from CSV:
+
+```bash
+python3 src/main.py load --file data/sample_events.csv
+```
+
+List events:
+
+```bash
+python3 src/main.py list
+```
+
+List events with filters:
+
+```bash
+python3 src/main.py list --status NEW
+python3 src/main.py list --severity HIGH
+python3 src/main.py list --subsystem NAV
 ```
 
 Update an event status:
 
 ```bash
-python src/main.py update-status EVT-0005 --status ACK --operator tinashe
-python src/main.py update-status EVT-0005 --status RESOLVED --operator tinashe
+python3 src/main.py update-status EVT-1001 --status ACK --operator tinashe
 ```
 
-Show a summary report:
+## Run the dashboard
+
+Start the Streamlit dashboard:
 
 ```bash
-python src/main.py summary
+python3 -m streamlit run src/dashboard.py
 ```
 
-Export filtered events to CSV:
-
-```bash
-python src/main.py export --status ACK --output exports/ack_events.csv
-python src/main.py export --subsystem COMMS --severity CRITICAL --output exports/comms_critical.csv
-```
-
-## Example summary output
+Then open the local URL shown in the terminal, usually:
 
 ```text
-Event summary:
-----------------------------------------------------------------------------------------------------
-Total events: 24
-
-By status:
-  NEW: 23
-  ACK: 1
-
-By severity:
-  INFO: 7
-  WARNING: 7
-  ERROR: 6
-  CRITICAL: 4
-
-By subsystem:
-  COMMS: 6
-  NAV: 6
-  POWER: 6
-  SENSOR: 6
+http://localhost:8501
 ```
 
-## Run tests
+## Dashboard capabilities
+
+The dashboard includes:
+
+- Sidebar filters for status, severity, and subsystem.
+- Search across message, event type, and subsystem.
+- Live summary metrics.
+- Charts for status and severity distribution.
+- Filtered event tables.
+- Top open events view.
+- Recent status history view.
+- Event status update form.
+
+## Data model
+
+Each event record includes fields such as:
+
+- `event_id`
+- `timestamp`
+- `subsystem`
+- `event_type`
+- `severity`
+- `priority_score`
+- `status`
+- `message`
+- `operator`
+- `status_updated_at`
+
+The project also stores status history in a separate audit table for tracking event lifecycle changes.
+
+## Testing
+
+Run tests with:
 
 ```bash
 pytest
 ```
 
-## Current test coverage
+## Example workflow
 
-The project currently includes tests for:
+1. Load sample event data into the database.
+2. Use the CLI to inspect stored events.
+3. Open the Streamlit dashboard.
+4. Filter events by severity, status, or subsystem.
+5. Update an event status from the dashboard.
+6. Confirm the change appears in recent history.
 
-- Valid event validation.
-- Missing required field validation.
-- Invalid severity validation.
-- Priority scoring logic.
-- SQLite insert and retrieval.
-- Filtering by status and subsystem.
-- Status updates.
-- Excluding resolved events from top open events.
-- Summary count queries.
-- CSV export behavior and edge cases.
+## Current scope
 
-## Why this project
+This project currently focuses on:
 
-This project is designed to demonstrate software engineering skills that go beyond simple scripting, including:
+- Local Python execution
+- SQLite persistence
+- CSV-based ingestion
+- Command-line operations
+- Lightweight dashboard monitoring
 
-- Structured project organisation.
-- Data validation and defensive programming.
-- Business-rule implementation.
-- Database integration.
-- Command-line interface design.
-- File export workflows.
-- Automated testing.
-- Clear, reproducible setup.
+The following are currently out of scope:
 
-## Next steps
+- Authentication
+- Multi-user access control
+- Cloud deployment
+- Real-time streaming ingestion
+- Distributed database infrastructure
 
-Planned improvements include:
+## Why this project exists
 
-- Add richer audit history for status changes.
-- Add a lightweight dashboard for event monitoring.
-- Add more CLI output tests and edge-case coverage.
-- Add timestamped export filenames or export metadata.
+This project was built to demonstrate practical software engineering skills including:
+
+- input validation
+- modular Python design
+- database interaction
+- state updates and audit history
+- testing and documentation
+- lightweight application presentation through a dashboard
+
+## Future enhancements
+
+Possible future improvements include:
+
+- richer dashboard visualisations
+- inline dashboard editing beyond status changes
+- advanced analytics views
+- pagination for large result sets
+- deployment as a hosted internal tool
+
+## Author
+
+Built as a portfolio project to demonstrate backend and application-layer software engineering skills.
