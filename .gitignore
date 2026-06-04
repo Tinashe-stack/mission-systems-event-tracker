@@ -4,4 +4,4 @@ __pycache__/
 mission_events.db
 *.db
 *.sqlite
-*.sqlite3
+*.sqlite3.vscode/
